@@ -19,7 +19,7 @@ function createApolloClient() {
   return new ApolloClient({
     ssrMode: typeof window === "undefined",
     link: new HttpLink({
-      uri: "https://gql-technical-assignment.herokuapp.com/graphql", // Server URL (must be absolute)
+      uri: "https://powerful-beyond-01021.herokuapp.com/graphql", // Server URL (must be absolute) //old URL:https://gql-technical-assignment.herokuapp.com/graphql
       credentials: "same-origin", // Additional fetch() options like `credentials` or `headers`
     }),
     cache: new InMemoryCache({
