@@ -1,6 +1,18 @@
-import { useQuery, useReactiveVar } from "@apollo/client"
-import { useEffect, useRef, useState } from "react"
+import { useQuery } from "@apollo/client"
+import { AnimatePresence } from "framer-motion"
+import { useEffect, useState } from "react"
+import { useTheme } from "styled-components"
 import useDarkMode from "use-dark-mode"
+import { v4 as uuidv4 } from "uuid"
+import { ArticleImagesVar } from "../../gql/client"
+import { GET_FIRST_ARTICLES_WITH_IMG } from "../../gql/queries/firstArticles"
+import { GET_PAGE_ARTICLES } from "../../gql/queries/moreArticles"
+import { client } from "../../pages"
+import { pageArticlesResponse } from "../../static/backup_data"
+import { ThemeType } from "../../styles/ThemeConfig"
+import { Article } from "../../types/Articles"
+import BlogForm from "../blog-form"
+import BlogCard from "../ui/BlogCard"
 import {
   ActiveCategory,
   AddBlogButton,
@@ -13,17 +25,6 @@ import {
   BlogSubtitle,
   LoadingSpinner,
 } from "./Elements"
-import { GET_FIRST_ARTICLES_WITH_IMG } from "../../gql/queries/firstArticles"
-import { GET_PAGE_ARTICLES } from "../../gql/queries/moreArticles"
-import { client } from "../../pages"
-import { Article } from "../../types/Articles"
-import { ArticleImagesVar } from "../../gql/client"
-import { useTheme } from "styled-components"
-import { ThemeType } from "../../styles/ThemeConfig"
-import BlogForm from "../blog-form"
-import { AnimatePresence } from "framer-motion"
-import BlogCard from "../ui/BlogCard"
-import { v4 as uuidv4 } from "uuid"
 
 interface formProps {
   title: string
@@ -59,14 +60,25 @@ const Blogs = () => {
   }
 
   const scrollCallback = async () => {
-    if (!isFetchingMoreArticles) {
+    if (!isFetchingMoreArticles && page <= 10) {
       setIsFetchingMoreArticles(true)
-      console.log("fetching more")
+
+      const newData = !moreData?.retrievePageArticles
+        ? pageArticlesResponse[page - 1].data.retrievePageArticles.map(
+            (item, index) => {
+              return {
+                ...item,
+                id: item.id + `page${page - 1}-item${index}`,
+                __typename: "Article",
+              }
+            }
+          )
+        : moreData.retrievePageArticles
 
       const request = {
         method: "POST",
         body: JSON.stringify({
-          moreData: moreData.retrievePageArticles,
+          moreData: newData,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -80,10 +92,7 @@ const Blogs = () => {
       client.writeQuery({
         query: GET_FIRST_ARTICLES_WITH_IMG,
         data: {
-          firstPageArticles: [
-            ...data.firstPageArticles,
-            ...moreData?.retrievePageArticles,
-          ],
+          firstPageArticles: [...data.firstPageArticles, ...newData],
         },
       })
       setPage((currentPage) => currentPage + 1)

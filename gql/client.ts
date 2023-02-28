@@ -20,7 +20,10 @@ function createApolloClient() {
     ssrMode: typeof window === "undefined",
     link: new HttpLink({
       uri: "https://powerful-beyond-01021.herokuapp.com/graphql", // Server URL (must be absolute) //old URL:https://gql-technical-assignment.herokuapp.com/graphql
-      credentials: "same-origin", // Additional fetch() options like `credentials` or `headers`
+      headers: { "Access-Control-Allow-Credentials": true },
+      fetchOptions: {
+        mode: "no-cors",
+      },
     }),
     cache: new InMemoryCache({
       // typePolicies is not required to use Apollo with Next.js - only for doing pagination.
